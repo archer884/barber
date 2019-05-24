@@ -18,6 +18,10 @@ pub struct Opt {
     /// Do not report deleted files.
     #[structopt(short = "s", long = "silent")]
     pub silent: bool,
+
+    /// Debug delete process.
+    #[structopt(short = "d", long = "debug")]
+    pub debug: bool,
 }
 
 impl Opt {

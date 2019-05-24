@@ -27,7 +27,7 @@ fn main() -> io::Result<()> {
 
     // Print or remove duplicates in the broader context.
     if opt.force {
-        remove_duplicates(&set, &context_tree, opt.silent)?;
+        remove_duplicates(&set, &context_tree, opt.silent, opt.debug)?;
     } else {
         list_duplicates(&set, &context_tree);
     }
@@ -39,12 +39,22 @@ fn remove_duplicates(
     set: &HashSet<LazyFingerprint>,
     context: &[PathBuf],
     silent: bool,
+    debug: bool,
 ) -> io::Result<()> {
     // Again, crazy nesting, I know. You just need to get over it.
     for item in context {
         if let Ok(candidate_fingerprint) = LazyFingerprint::try_from_path(&item) {
-            if set.contains(&candidate_fingerprint) {
-                fs::remove_file(&item)?;
+            if let Some(keep) = set.get(&candidate_fingerprint) {
+
+                // Useful if you're paranoid, but I'd really like to just remove this feature...
+                // Problem is, I've definitely seen one case where the list operation showed fewer
+                // files than the removal operation removed.
+                if !debug {
+                    fs::remove_file(&item)?;
+                } else {
+                    println!("Kept {}", keep.path().display())
+                }
+
                 if !silent {
                     println!("Removed {}", item.display());
                 }
