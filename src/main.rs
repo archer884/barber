@@ -16,13 +16,13 @@ fn main() -> io::Result<()> {
     // Create two lists of files to work from. The target tree is where these files all belong;
     // the context tree is where we want to search for potential duplicates. While the target
     // tree may be a subtree of the context, files within that subtree will not be checked.
-    let target_tree = dbg!(materialize_target_tree(opt.target(), &pwd));
+    let target_tree = materialize_target_tree(opt.target(), &pwd);
     let context_tree = materialize_context_tree(opt.context(), &target_tree, &pwd);
 
     // Build our lazy target set.
     let set = target_tree
         .iter()
-        .map(|path| LazyFingerprint::try_from_path(path).unwrap())
+        .filter_map(|path| LazyFingerprint::try_from_path(path).ok())
         .collect();
 
     // Print or remove duplicates in the broader context.
@@ -41,13 +41,22 @@ fn remove_duplicates(_set: &HashSet<LazyFingerprint>, _context: &[PathBuf]) -> i
 
 fn list_duplicates(set: &HashSet<LazyFingerprint>, context: &[PathBuf]) {
     let mut duplicates_grouping: HashMap<_, Vec<_>> = HashMap::new();
+
     for item in context {
-        // Fun fact: this returns a reference to the *original* fingerprint!
-        if let Some(fingerprint) = set.get(&LazyFingerprint::try_from_path(item).unwrap()) {
-            duplicates_grouping
-                .entry(fingerprint)
-                .or_default()
-                .push(item);
+        // It looks weird to do this in two layers, but there's a reason behind it: some of these
+        // paths refer to directories, not files, and those cannot (and should not) be converted
+        // into fingerprints.
+        //
+        // The second layer is used to determine whether the fingerprint we just derived matches
+        // any fingerprint from the target directory. If so, we add the *original* fingerprint
+        // to the duplicates grouping map above.
+        if let Ok(candidate_fingerprint) = LazyFingerprint::try_from_path(&item) {
+            if let Some(fingerprint) = set.get(&candidate_fingerprint) {
+                duplicates_grouping
+                    .entry(fingerprint)
+                    .or_default()
+                    .push(item);
+            }
         }
     }
 
