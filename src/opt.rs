@@ -13,7 +13,11 @@ pub struct Opt {
 
     /// Remove duplicates.
     #[structopt(short = "f", long = "force")]
-    force: bool,
+    pub force: bool,
+
+    /// Do not report deleted files.
+    #[structopt(short = "s", long = "silent")]
+    pub silent: bool,
 }
 
 impl Opt {
@@ -27,9 +31,5 @@ impl Opt {
 
     pub fn context(&self) -> &Path {
         &self.context
-    }
-
-    pub fn force(&self) -> bool {
-        self.force
     }
 }

@@ -26,8 +26,8 @@ fn main() -> io::Result<()> {
         .collect();
 
     // Print or remove duplicates in the broader context.
-    if opt.force() {
-        remove_duplicates(&set, &context_tree)?;
+    if opt.force {
+        remove_duplicates(&set, &context_tree, opt.silent)?;
     } else {
         list_duplicates(&set, &context_tree);
     }
@@ -35,8 +35,19 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn remove_duplicates(_set: &HashSet<LazyFingerprint>, _context: &[PathBuf]) -> io::Result<()> {
-    unimplemented!("Someday you'll need to get around to making this delete files...")
+fn remove_duplicates(set: &HashSet<LazyFingerprint>, context: &[PathBuf], silent: bool) -> io::Result<()> {
+    // Again, crazy nesting, I know. You just need to get over it.
+    for item in context {
+        if let Ok(candidate_fingerprint) = LazyFingerprint::try_from_path(&item) {
+            if set.contains(&candidate_fingerprint) {
+                fs::remove_file(&item)?;
+                if !silent {
+                    println!("Removed {}", item.display());
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 fn list_duplicates(set: &HashSet<LazyFingerprint>, context: &[PathBuf]) {
