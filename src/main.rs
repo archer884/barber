@@ -49,6 +49,9 @@ fn remove_duplicates(
                 // Useful if you're paranoid, but I'd really like to just remove this feature...
                 // Problem is, I've definitely seen one case where the list operation showed fewer
                 // files than the removal operation removed.
+                //
+                // Possibly the right solution to that would be to combine the code for both
+                // operations into one.
                 if !debug {
                     fs::remove_file(&item)?;
                 } else {
