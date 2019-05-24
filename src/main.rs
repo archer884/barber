@@ -17,7 +17,7 @@ fn main() -> io::Result<()> {
     // the context tree is where we want to search for potential duplicates. While the target
     // tree may be a subtree of the context, files within that subtree will not be checked.
     let target_tree = materialize_target_tree(opt.target(), &pwd);
-    let context_tree = materialize_context_tree(opt.context(), &target_tree, &pwd);
+    let context_tree = materialize_context_tree(opt.context().unwrap_or(&pwd), &target_tree, &pwd);
 
     // Build our lazy target set.
     let set = target_tree
@@ -35,7 +35,11 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn remove_duplicates(set: &HashSet<LazyFingerprint>, context: &[PathBuf], silent: bool) -> io::Result<()> {
+fn remove_duplicates(
+    set: &HashSet<LazyFingerprint>,
+    context: &[PathBuf],
+    silent: bool,
+) -> io::Result<()> {
     // Again, crazy nesting, I know. You just need to get over it.
     for item in context {
         if let Ok(candidate_fingerprint) = LazyFingerprint::try_from_path(&item) {

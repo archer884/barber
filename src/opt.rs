@@ -9,7 +9,7 @@ pub struct Opt {
 
     /// Context within which duplicates will be sought.
     #[structopt(parse(from_os_str))]
-    context: PathBuf,
+    context: Option<PathBuf>,
 
     /// Remove duplicates.
     #[structopt(short = "f", long = "force")]
@@ -29,7 +29,7 @@ impl Opt {
         &self.target
     }
 
-    pub fn context(&self) -> &Path {
-        &self.context
+    pub fn context(&self) -> Option<&Path> {
+        self.context.as_ref().map(AsRef::as_ref)
     }
 }
