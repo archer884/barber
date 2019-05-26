@@ -51,7 +51,7 @@ impl<'a> LazyFingerprint<'a> {
         use std::fs::File;
         use std::io::{Read, Seek, SeekFrom};
 
-        const MAX_SIZE: u64 = 0x0080_0000; // 8 megabytes
+        const MAX_SIZE: u64 = 0x200_000; // 2 megabytes
 
         // In theory, we shouldn't have any problem opening this file because we've already
         // checked to see that a file exists at this location. Anyway... Cross your fingers.
